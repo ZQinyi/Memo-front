@@ -17,6 +17,7 @@
       <div>
         <input v-model="inviteeId" type="text" id="inviteeId" placeholder="Enter the InviteeID">
         <button id="sendInvitationBtn" @click="sendInvitation">SEND</button>
+        <button id="coEdit" @click="coEdit">Collaborative Editing</button>
       </div>
     </div>
   </div>
@@ -35,15 +36,12 @@ const userId = route.params.userId;
 const jwtToken = sessionStorage.getItem('token');
 const notes = ref([]);
 const editTitle = ref('');
-const editContent = ref('');
 const inviteeId = ref('');
 const errorMessage = ref('');
 const currentNoteId = ref(null);
 let autoSaveInterval = null;
 
-const selectedNote = ref(null);
 const editorInstance = ref(null);
-const yjsInstances = new Map();
 
 const autoSave = () => {
   console.log("Attempting to auto-save...");
@@ -88,7 +86,7 @@ const fetchNotes = async () => {
 const fetchNoteDetails = async (noteId) => {
   currentNoteId.value = noteId;
   try {
-    const response = await axios.get(`http://localhost:8080/api/${userId}/notes/${noteId}`, {
+    const response = await axios.get(`http://localhost:8080/api/notes/${noteId}`, {
       headers: {
         'Content-Type': 'application/json',
         'token': jwtToken
@@ -99,15 +97,7 @@ const fetchNoteDetails = async (noteId) => {
 
     if (!editorInstance.value) {
       editorInstance.value = new Quill('#editor', { theme: 'snow' });
-      if (!yjsInstances.has(noteId)) {
-        const yjs = new myYjs(editorInstance.value, noteId);
-        yjsInstances.set(noteId, yjs);
-      }
-      function onUserJoin(userId) {
-        yjs.createAwareness(userId);
-      }
     }
-
     // 设置编辑器内容
     editorInstance.value.root.innerHTML = response.data.data.content || '';
   } catch (error) {
@@ -162,9 +152,8 @@ const deleteNote = async (noteId) => {
 const saveNoteChanges = async () => {
     const content = editorInstance.value.root.innerHTML;
     try {
-      await axios.put(`http://localhost:8080/api/${userId}/notes`, {
+      await axios.put(`http://localhost:8080/api/notes`, {
         id: currentNoteId.value,
-        userId: userId,
         title: editTitle.value,
         content: content,
       }, {
@@ -208,6 +197,11 @@ const sendInvitation = async () => {
         console.error('Error sending invitation:', error);
         alert('Failed to send the invitation.');
     }
+};
+
+const coEdit = async () => {
+  const noteId = currentNoteId.value;
+  router.push(`/${noteId}/quill`);
 };
 
 watch(currentNoteId, async (newId) => {
