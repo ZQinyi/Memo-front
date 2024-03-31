@@ -23,29 +23,20 @@ export class myQuill {
 import * as Y from "yjs";
 import { WebrtcProvider } from "y-webrtc";
 import { QuillBinding } from "y-quill";
- 
+
 export class myYjs {
-  // 需要传入绑定对象
     constructor(quill, noteId) {
-        // A Yjs document holds the shared data
         this.ydoc = new Y.Doc();
-
         const uniqueDocName = `quill-${noteId}`;
- 
-        // Define a shared text type on the document（这个是拿到需要协同的 Delta 数据）
-        const ytext = this.ydoc.getText(uniqueDocName);
- 
-        // 使用webrtc实现连接
-        const provider = new WebrtcProvider(uniqueDocName, this.ydoc);
+        this.ytext = this.ydoc.getText(uniqueDocName);
 
-        // 绑定 quill与YJS
-        const binding = new QuillBinding(ytext, quill.quill, provider.awareness);
+        // 作为类属性
+        this.provider = new WebrtcProvider(uniqueDocName, this.ydoc);
+        new QuillBinding(this.ytext, quill.quill, this.provider.awareness);
     }
 
     createAwareness(name) {
-        let { awareness } = this.provider;
         let color = "#" + Math.random().toString(16).split(".")[1].slice(0, 6);
-        awareness.setLocalStateField("user", { name, color });
-        return awareness;
+        this.provider.awareness.setLocalStateField("user", { name, color });
     }
 }

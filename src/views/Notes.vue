@@ -109,7 +109,7 @@ const fetchNoteDetails = async (noteId) => {
     }
 
     // 设置编辑器内容
-    editorInstance.value.setText(response.data.data.content || '');
+    editorInstance.value.root.innerHTML = response.data.data.content || '';
   } catch (error) {
     console.error('Fetch note details error:', error);
   }
@@ -160,7 +160,7 @@ const deleteNote = async (noteId) => {
 
 
 const saveNoteChanges = async () => {
-    const content = editorInstance.value.getText();
+    const content = editorInstance.value.root.innerHTML;
     try {
       await axios.put(`http://localhost:8080/api/${userId}/notes`, {
         id: currentNoteId.value,
