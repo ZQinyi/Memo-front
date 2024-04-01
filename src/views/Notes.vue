@@ -12,14 +12,15 @@
       </div>
     </div>
     <div class="main-content">
-        <input v-model="editTitle" id="editTitle" class="editTitle">
-        <div ref="editor" id="editor"></div>
-      <div>
+    <input v-model="editTitle" id="editTitle" class="editTitle">
+    <div ref="editor" id="editor"></div>
+      <template v-if="editTitle || editor">
         <input v-model="inviteeId" type="text" id="inviteeId" placeholder="Enter the InviteeID">
-        <button id="sendInvitationBtn" @click="sendInvitation">SEND</button>
-        <button id="coEdit" @click="coEdit">Collaborative Editing</button>
-      </div>
+        <button id="sendInvitation" @click="sendInvitation">SEND</button>
+        <button id="pendingListsBtn" @click="coEdit">co-Edit</button>
+      </template>
     </div>
+
   </div>
 </template>
 
