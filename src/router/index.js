@@ -10,8 +10,6 @@ const routes = [
     {path: '/:userId/notes', component: NotesVue, name: 'notes' },
     {path: '/:userId/pendings', component: PendingVue, name: 'pendings' },
     {path: '/:noteId/quill', component: QuillVue, name: 'quill' },
-
-
 ]
 
 const router = createRouter({

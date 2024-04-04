@@ -12,12 +12,12 @@
       </div>
     </div>
     <div class="main-content">
-    <input v-model="editTitle" id="editTitle" class="editTitle">
+    <input v-model="editTitle" id="editTitle" class="editTitle" :readonly="true">
     <div ref="editor" id="editor"></div>
       <template v-if="editTitle || editor">
         <input v-model="inviteeId" type="text" id="inviteeId" placeholder="Enter the InviteeID">
         <button id="sendInvitation" @click="sendInvitation">SEND</button>
-        <button id="pendingListsBtn" @click="coEdit">co-Edit</button>
+        <button id="pendingListsBtn" @click="edit">Edit</button>
       </template>
     </div>
 
@@ -29,7 +29,6 @@ import { ref, onMounted, onUnmounted, watch, nextTick } from 'vue';
 import axios from 'axios';
 import { useRoute, useRouter } from 'vue-router';
 import Quill from 'quill';
-import { myQuill, myYjs } from '/src/utils/quill.js';
 
 const route = useRoute();
 const router = useRouter();
@@ -40,14 +39,7 @@ const editTitle = ref('');
 const inviteeId = ref('');
 const errorMessage = ref('');
 const currentNoteId = ref(null);
-let autoSaveInterval = null;
-
 const editorInstance = ref(null);
-
-const autoSave = () => {
-  console.log("Attempting to auto-save...");
-  saveNoteChanges();
-};
 
 
 if (!jwtToken) {
@@ -97,9 +89,16 @@ const fetchNoteDetails = async (noteId) => {
     await nextTick();
 
     if (!editorInstance.value) {
-      editorInstance.value = new Quill('#editor', { theme: 'snow' });
+      editorInstance.value = new Quill('#editor', {
+        theme: 'snow',  
+        modules: {
+          toolbar: false
+        }
+      });
+
+      editorInstance.value.enable(false); 
     }
-    // 设置编辑器内容
+    
     editorInstance.value.root.innerHTML = response.data.data.content || '';
   } catch (error) {
     console.error('Fetch note details error:', error);
@@ -130,7 +129,6 @@ const addNote = async () => {
     }
 };
 
-
 const deleteNote = async (noteId) => {
     try {
         const response = await axios.delete(`http://localhost:8080/api/${userId}/notes/${noteId}`, {
@@ -148,28 +146,6 @@ const deleteNote = async (noteId) => {
         console.error('Error deleting note:', error.response ? error.response.data : error.message);
     }
 };
-
-
-const saveNoteChanges = async () => {
-    const content = editorInstance.value.root.innerHTML;
-    try {
-      await axios.put(`http://localhost:8080/api/notes`, {
-        id: currentNoteId.value,
-        title: editTitle.value,
-        content: content,
-      }, {
-        headers: {
-          'Content-Type': 'application/json',
-          'token': jwtToken,
-        }
-      });
-      fetchNotes();
-    } catch (error) {
-      console.error('Error saving note changes:', error);
-    }
-  
-};
-
 
 const sendInvitation = async () => {
     if (!inviteeId) {
@@ -200,7 +176,7 @@ const sendInvitation = async () => {
     }
 };
 
-const coEdit = async () => {
+const edit = async () => {
   const noteId = currentNoteId.value;
   router.push(`/${noteId}/quill`);
 };
@@ -213,15 +189,7 @@ watch(currentNoteId, async (newId) => {
 
 
 onMounted(() => {
-    fetchNotes();
-    autoSaveInterval = setInterval(autoSave, 10000); 
-
-});
-
-onUnmounted(() => {
-  if (autoSaveInterval) {
-    clearInterval(autoSaveInterval);
-  }
+  fetchNotes();
 });
 
 </script>

@@ -17,6 +17,10 @@ export class myQuill {
         placeholder: "Please insert content...",
     });
   }
+
+  getHTML() {
+    return this.quill.root.innerHTML;
+  }
 }
  
 // 导出 Yjs 实体类
